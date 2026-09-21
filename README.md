@@ -73,7 +73,7 @@ npm run console    # http://localhost:5173
 
 1. **choice 题缺 no-match 出口时自动补一个 `undecidable`**，返回里标 `patched: true`。缺出口时模型对无解输入会给出 0.95 的假自信。
 2. **没有 `scope` 就不返回 `off_topic`**。不给参照系时它对正常输入也给 0.71–0.93，那不是判断，是常数。
-3. **没配 key 时明确返回不可用**（退出码 1），绝不编一个看着像数的概率。
+3. **没配 key 时判断类工具明确返回不可用**（`ok:false`、`degraded:true`，CLI 退出码 1），绝不编一个看着像数的概率。`jev_health` / `jev_stats` 是诊断，不走这条路 —— 它们照常返回 `keyConfigured: false`，让你能问出"为什么不可用"。
 
 `jev_judge` 之外的内置预设本来就该自带 no-match 出口；如果哪个内置工具的返回里出现 `patched: true`，那是预设写漏了一路，不是调用方的锅（`jev_trace_scan` 曾犯过，已修）。
 

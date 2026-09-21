@@ -32,6 +32,16 @@ const { tools } = await client.listTools();
 console.log(`\n═══ jevbox 端到端验证 ═══`);
 console.log(`握手 ${helloMs}ms，暴露 ${tools.length} 个工具：${tools.map((t) => t.name).join(", ")}`);
 
+/**
+ * 结构自检：tools/list 与 jev_health 自报的清单必须一致。
+ * 这条不花钱（jev_health 不调 Jev），但它抓到过真东西 —— 曾经 jev_health 里手写
+ * 的数组漏了 jev_health 自己，而所有模型用例全绿也照不出来。
+ */
+const healthBody = JSON.parse((await client.callTool({ name: "jev_health", arguments: {} })).content[0].text);
+const listed = new Set(healthBody.tools ?? []);
+const drift = tools.map((t) => t.name).filter((n) => !listed.has(n)).concat([...listed].filter((n) => !tools.some((t) => t.name === n)));
+console.log(`清单一致性：${drift.length ? `✗ 差异 ${drift.join(", ")}` : `✓ ${tools.length} 个工具与 jev_health 自报一致`}`);
+
 /** 每个工具至少一个正例一个反例 —— 只验正例的话，一个恒返回 true 的破盒子也能满分 */
 const CASES = [
   { tool: "jev_verify", args: { claim: "退款会在 3 个工作日内到账", evidence: "退款处理时间为 5 到 7 个工作日，遇节假日顺延。" }, want: (v) => v.relation === "contradicts", why: "证据明确否定主张" },
@@ -103,4 +113,4 @@ console.log(bad.length
   : "  全部达期望。正反例都过了：既没漏报，也没在正常输入上误报。");
 
 await client.close();
-process.exit(bad.length ? 1 : 0);
+process.exit(bad.length || drift.length ? 1 : 0);
