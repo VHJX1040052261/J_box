@@ -14,13 +14,16 @@ const digest = (s) => createHash("sha1").update(typeof s === "string" ? s : JSON
  * id = 每条决策独有，复核挂到 id 上，才不会「推翻一次」变成「推翻这条输入的所有历史判定」。
  * preview 只留前 70 字供人眼扫读 —— 真要脱敏就把它也去掉，现在这版是「可追溯优先」。
  */
-export function logDecision({ pack, item, v, meta, decision }) {
+export function logDecision({ pack, item, v, meta, decision, source = null }) {
   const trace = decision.trace ?? [];
   const row = {
     t: "d",
     id: randomBytes(5).toString("hex"),
     ts: new Date().toISOString(),
     pack: pack.id,
+    // 谁调的：mcp = agent 通过 MCP，cli = 命令行，console = 可视化控制台。
+    // 没有它就只能看到「有调用」，看不到「是我的 agent 在调」—— 接入验证要靠这一列。
+    source,
     key: digest(item),
     preview: (pack.previewOf?.(item) ?? (typeof item === "string" ? item : JSON.stringify(item))).replace(/\s+/g, " ").slice(0, 70),
     action: decision.action,

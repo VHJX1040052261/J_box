@@ -1,4 +1,4 @@
-import { askJev } from "../jev.mjs";
+import { askJev } from "./jev.mjs";
 
 /**
  * jevbox 的六个用例预设 —— 对应官方那张表，一个用例一个入口。

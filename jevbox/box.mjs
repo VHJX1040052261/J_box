@@ -1,5 +1,5 @@
-import { askJev } from "../jev.mjs";
-import { logDecision } from "../jevkit/audit.mjs";
+import { askJev } from "./jev.mjs";
+import { logDecision } from "./audit.mjs";
 import { PRESETS, SCREEN_QUESTION } from "./presets.mjs";
 
 /**
@@ -55,7 +55,7 @@ const UNAVAILABLE = {
   hint: "盒子不会编造概率。要么配 key，要么让调用方走自己的保守分支。",
 };
 
-export async function runPreset(name, args, { sample = 1 } = {}) {
+export async function runPreset(name, args, { sample = 1, source = null } = {}) {
   const preset = PRESETS[name];
   if (!preset) return { ok: false, error: `未知预设 ${name}`, available: Object.keys(PRESETS) };
   for (const a of preset.args) {
@@ -83,7 +83,7 @@ export async function runPreset(name, args, { sample = 1 } = {}) {
     tokens: runs.reduce((s, r) => s + r.meta.usage.input_tokens, 0),
     sample: runs.length,
   };
-  logDecision({ pack: { id: `box:${name}` }, item: state, v, meta, decision: { action: verdictOf(name, v), why: "", trace: [] } });
+  logDecision({ pack: { id: `box:${name}` }, item: state, v, meta, decision: { action: verdictOf(name, v), why: "", trace: [] }, source });
   return { ok: true, tool: name, patched, v, meta };
 }
 
@@ -118,7 +118,7 @@ function stateOf(name, args) {
 }
 
 /** AI Map-Reduce：一次调用只能判一条，所以这里做的是「只回命中项 + 总花费」 */
-export async function screen(items, what, { threshold = 0.5, sample = 1 } = {}) {
+export async function screen(items, what, { threshold = 0.5, sample = 1, source = null } = {}) {
   if (!process.env.TYPESAFE_API_KEY) return { ...UNAVAILABLE, tool: "screen" };
   const { questions } = patchQuestions(SCREEN_QUESTION(what));
   const hits = [];
@@ -136,13 +136,30 @@ export async function screen(items, what, { threshold = 0.5, sample = 1 } = {}) 
     const p = [...runs].sort((x, y) => x - y)[Math.floor(runs.length / 2)];
     if (p >= threshold) hits.push({ i, p, preview: state.replace(/\s+/g, " ").slice(0, 90) });
   }
+  const meta = {
+    cost,
+    tokens,
+    ms: Math.round(ms / Math.max(1, items.length)),
+    model: "jev-latest",
+    // logDecision 读 usage.input_tokens；粗筛是 N 次调用的总和，这里如实记总量而不是均值
+    usage: { input_tokens: tokens, output_tokens: 0 },
+    sample,
+  };
+  logDecision({
+    pack: { id: "box:screen" },
+    item: { what, scanned: items.length },
+    v: { kept: hits.length, threshold },
+    meta,
+    decision: { action: `kept ${hits.length}/${items.length}`, why: what, trace: [] },
+    source,
+  });
   return {
     ok: true,
     tool: "screen",
     scanned: items.length,
     kept: hits.length,
     hits,
-    meta: { cost, tokens, ms: Math.round(ms / items.length), model: "jev-latest" },
+    meta,
     note: `粗筛把 ${items.length} 条压到 ${hits.length} 条交给大模型；剩下的 ${items.length - hits.length} 条没花你一分钱 token。`,
   };
 }

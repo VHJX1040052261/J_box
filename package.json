@@ -12,10 +12,7 @@
     "box": "node jevbox/cli.mjs",
     "box:mcp": "node jevbox/server.mjs",
     "box:test": "node jevbox/test.mjs",
-    "demo": "node jevkit/demo.mjs",
-    "pk": "node jevkit/pk.mjs",
-    "boss": "node jevkit/boss-demo.mjs",
-    "studio": "npm --prefix studio run dev",
+    "console": "npm --prefix studio run dev",
     "api": "node studio/server.mjs"
   },
   "dependencies": {

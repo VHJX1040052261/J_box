@@ -29,8 +29,8 @@ if (argJson) {
 
 const t0 = Date.now();
 const out = cmd === "screen"
-  ? await screen(args.items ?? [], args.what ?? "与主题相关", { threshold: args.threshold ?? 0.5, sample: args.sample ?? 1 })
-  : await runPreset(cmd, args, { sample: args.sample ?? 1 });
+  ? await screen(args.items ?? [], args.what ?? "与主题相关", { threshold: args.threshold ?? 0.5, sample: args.sample ?? 1, source: "cli" })
+  : await runPreset(cmd, args, { sample: args.sample ?? 1, source: "cli" });
 
 console.log(JSON.stringify({ ...out, wall_ms: Date.now() - t0 }, null, 2));
 process.exit(out.ok ? 0 : 1);
