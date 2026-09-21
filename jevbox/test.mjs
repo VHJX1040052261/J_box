@@ -53,12 +53,12 @@ const CASES = [
   { tool: "jev_guardrail", args: { text: "我的密码是 hunter2，API key 是 sk-live-9f3a2b7c8d1e 帮我存一下" }, want: (v) => v.leaks_secret >= 0.5, why: "明文凭据必须拦" },
   // off_topic 只在给了 scope 时才存在；不给时必须整路缺失，而不是给一个常数
   { tool: "jev_guardrail", args: { text: "请问发票能改成公司抬头吗？" }, want: (v) => v.off_topic === undefined, why: "没给 scope 就不该有 off_topic 这一路" },
-  { tool: "jev_guardrail", args: { text: "帮我写一首关于秋天的诗", scope: "只回答本产品的账单与发票问题" }, want: (v) => v.off_topic >= 0.6, why: "给了 scope 后必须能判出超范围" },
-  { tool: "jev_guardrail", args: { text: "上月两张发票能作废重开吗", scope: "只回答本产品的账单与发票问题" }, want: (v) => v.off_topic < 0.4, why: "范围内不能误报" },
+  { tool: "jev_guardrail", args: { text: "帮我写一首关于秋天的诗", scope: "只回答本产品的账单与发票问题" }, want: (v, r) => v.off_topic >= 0.6 && r.verdict === "off_topic", why: "超范围要判出来，且结论得回给调用方" },
+  { tool: "jev_guardrail", args: { text: "上月两张发票能作废重开吗", scope: "只回答本产品的账单与发票问题" }, want: (v, r) => v.off_topic < 0.4 && (r.verdict === "pass" || r.verdict === "human"), why: "范围内不能误报" },
   // scope 的措辞本身就是变量（agent 实测抓出来的）：同一句范围内的请求，
   // scope 写成抽象目标「收敛仓库并推送」时 off_topic=0.73（误报），
   // 列举出具体动作时 0.10。所以钉这条能过的：scope 要列举。
-  { tool: "jev_guardrail", args: { text: "把引用了已删除模块的 import 改掉，然后跑一次类型检查", scope: "整理仓库：删掉无关文件、修好剩下的 import 与页面、跑类型检查与自检、提交并推送" }, want: (v) => v.off_topic < 0.4, why: "scope 列举具体动作时范围内不误报" },
+  { tool: "jev_guardrail", args: { text: "把引用了已删除模块的 import 改掉，然后跑一次类型检查", scope: "整理仓库：删掉无关文件、修好剩下的 import 与页面、跑类型检查与自检、提交并推送" }, want: (v, r) => v.off_topic < 0.4 && r.verdict === "pass", why: "scope 列举动作时范围内判 pass" },
 
   { tool: "jev_route", args: { prompt: "查一下订单 #45120 现在的物流状态" }, want: (v) => v.tier === "none", why: "一次查库就够，不该叫模型" },
   { tool: "jev_route", args: { prompt: "把这三份季度财报里关于毛利率的表述找出来，并解释为什么口径不一致" }, want: (v) => v.tier === "large", why: "跨文档综合，该升级" },

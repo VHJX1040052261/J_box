@@ -83,8 +83,11 @@ export async function runPreset(name, args, { sample = 1, source = null } = {}) 
     tokens: runs.reduce((s, r) => s + r.meta.usage.input_tokens, 0),
     sample: runs.length,
   };
-  logDecision({ pack: { id: `box:${name}` }, item: state, v, meta, decision: { action: verdictOf(name, v), why: "", trace: [] }, source });
-  return { ok: true, tool: name, patched, v, meta };
+  const verdict = verdictOf(name, v);
+  logDecision({ pack: { id: `box:${name}` }, item: state, v, meta, decision: { action: verdict, why: "", trace: [] }, source });
+  // verdict 必须回给调用方：它是盒子的结论，只写进审计日志的话，agent 拿到的是一堆概率
+  // 而不是一个可执行判断，每个前端就只能自己再抄一份 verdictOf（控制台之前就是这么干的）。
+  return { ok: true, tool: name, patched, v, verdict, meta };
 }
 
 /** 多次采样合并：数值取中位数，字符串取多数票，概率分布取首次 */
@@ -101,8 +104,15 @@ function merge(vs) {
 }
 
 /** 每个预设一个「盒子给出的结论」，纯代码规则，不是 Jev 写的 */
-function verdictOf(name, v) {
-  if (name === "guardrail") return (v.jailbreak ?? 0) >= 0.5 || (v.leaks_secret ?? 0) >= 0.5 ? "block" : (v.needs_human ?? 0) >= 0.6 ? "human" : "pass";
+export function verdictOf(name, v) {
+  if (name === "guardrail") {
+    if ((v.jailbreak ?? 0) >= 0.5 || (v.leaks_secret ?? 0) >= 0.5) return "block";
+    // off_topic 之前被 verdictOf 整个忽略：算出了 0.96 也照样报 pass。
+    // 排在 needs_human 前面 —— 超范围的东西不该再被自家人工接手。
+    if ((v.off_topic ?? 0) >= 0.6) return "off_topic";
+    if ((v.needs_human ?? 0) >= 0.6) return "human";
+    return "pass";
+  }
   if (name === "route") return v.tier;
   if (name === "verify") return v.relation;
   if (name === "trace_scan") return v.status;

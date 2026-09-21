@@ -21,6 +21,7 @@ type CallResult = {
   tool?: string;
   patched?: boolean;
   v?: Record<string, any>;
+  verdict?: string | null;
   hits?: { i: number; p: number; preview: string }[];
   scanned?: number;
   kept?: number;
@@ -177,7 +178,7 @@ export function ConsoleTab({ tools }: { tools: Tool[] }) {
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center gap-2 text-base">
             返回
-            {result?.ok && result.tool !== "screen" && <VerdictBadge action={verdictOf(result.tool ?? "", result.v ?? {})} />}
+            {result?.ok && result.tool !== "screen" && <VerdictBadge action={result.verdict ?? null} />}
             {result?.patched && <Badge variant="outline" className="border-amber-500/40 bg-amber-500/15 text-amber-700 dark:text-amber-400">盒子补了 no-match 出口</Badge>}
           </CardTitle>
         </CardHeader>
@@ -219,13 +220,4 @@ export function ConsoleTab({ tools }: { tools: Tool[] }) {
       </Card>
     </div>
   );
-}
-
-/** 和 box.mjs 的 verdictOf 同一套规则；这里只为了在标题上提前显示结论 */
-function verdictOf(tool: string, v: Record<string, any>): string | null {
-  if (tool === "guardrail") return (v.jailbreak ?? 0) >= 0.5 || (v.leaks_secret ?? 0) >= 0.5 ? "block" : (v.needs_human ?? 0) >= 0.6 ? "human" : "pass";
-  if (tool === "route") return v.tier ?? null;
-  if (tool === "verify") return v.relation ?? null;
-  if (tool === "trace_scan") return v.status ?? null;
-  return null;
 }

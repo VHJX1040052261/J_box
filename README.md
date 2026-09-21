@@ -46,7 +46,7 @@ node jevbox/cli.mjs --list
 | 工具 | 官方用例 | 干什么 |
 |---|---|---|
 | `jev_verify` | Universal Verification | 拿证据核验一段主张/抽取/引用：supports / contradicts / not_mentioned，外加"有细节但证据没覆盖"的编造风险 |
-| `jev_guardrail` | LLM Guardrails | 越狱改写、超范围、明文泄露凭据、必须人工 —— 四路概率 + pass/block/human |
+| `jev_guardrail` | LLM Guardrails | 越狱改写、超范围、明文泄露凭据、必须人工 —— 四路概率 + `pass`/`block`/`off_topic`/`human` 结论 |
 | `jev_route` | Model Routing | 这条请求该给 none(确定性代码) / small / large / human，外加选错档是否不可逆 |
 | `jev_trace_scan` | Harness Engineering | agent 轨迹一步的体检：progress / redundant / contradiction / tool_misuse / done + 空转循环风险 |
 | `jev_screen` | Map-Reduce over Big Data | 大语料粗筛，只把命中项交回给大模型，并报告扫了几条、留下几条、花了多少 |
@@ -66,6 +66,19 @@ npm run console    # http://localhost:5173
 - **工具台** —— 八个工具的实际调用面板。它 `import` 的就是 `jevbox/box.mjs`，和 MCP、CLI 是同一条代码路径，所以这里看到的概率就是 agent 拿到的那一份，不是另算的。
 - **实时调用流** —— 每 1.5 秒拉一次审计日志。**MCP server、CLI、控制台三个进程写的是同一个 `jevbox/audit.jsonl`**，所以 agent 在它自己的会话里调一次 `jev_guardrail`，这里就会冒出一行 `source = agent · MCP`。这是验证"接入是否真的生效"的直接证据，不用去翻 agent 的日志。每行可以点 认可 / 推翻，复核结果回流成 `trueErrorRate`。
 - **接入方式** —— 可直接粘贴的 MCP 配置（密钥位置是占位符，页面拿不到真 key）、CLI 兜底命令、三条强制规矩、已量出来的边界。
+
+## 返回值长什么样
+
+判断类工具统一返回：
+
+```json
+{ "ok": true, "tool": "guardrail", "patched": false,
+  "v": { "jailbreak": 0.01, "leaks_secret": 0.01, "needs_human": 0.02, "off_topic": 0.95 },
+  "verdict": "off_topic",
+  "meta": { "model": "jev-1.13.0", "ms": 283, "cost": 0.0000267, "tokens": 637, "sample": 1 } }
+```
+
+`v` 是 Jev 给的概率，`verdict` 是**盒子用代码规则下的结论** —— 两者都要看：`v` 用来自己定阈值，`verdict` 用来直接分流。`meta.cost` 是这次调用真实花掉的钱，不是估算。
 
 ## 盒子里写死的三条规矩
 

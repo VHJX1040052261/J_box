@@ -11,6 +11,7 @@ const ACTION_STYLE: Record<string, string> = {
   block: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/40",
   human: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/40",
   pass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/40",
+  off_topic: "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/40",
   none: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/40",
   small: "bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/40",
   large: "bg-violet-500/15 text-violet-700 dark:text-violet-400 border-violet-500/40",
