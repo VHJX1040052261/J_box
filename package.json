@@ -12,6 +12,7 @@
     "box": "node jevbox/cli.mjs",
     "box:mcp": "node jevbox/server.mjs",
     "box:test": "node jevbox/test.mjs",
+    "box:scale": "node jevbox/screen-at-scale.mjs",
     "console": "npm --prefix studio run dev",
     "api": "node studio/server.mjs"
   },

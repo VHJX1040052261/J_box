@@ -12,7 +12,7 @@ export TYPESAFE_API_KEY=...      # 只走环境变量，仓库里不放任何密
 node jevbox/test.mjs             # 端到端自检，会真花钱（约 $0.0004）
 ```
 
-自检走的是官方 MCP client over stdio，15 个用例，正反例都有：越狱串必须报警、正常提问不能误报、假凭据必须被拦住、没给 scope 时不该有 `off_topic` 这一路。
+自检走的是官方 MCP client over stdio，16 个用例，正反例都有：越狱串必须报警、正常提问不能误报、假凭据必须被拦住、没给 scope 时不该有 `off_topic` 这一路。另外有一条零成本的**结构自检**：`tools/list` 与 `jev_health` 自报的清单必须一致 —— 它抓到过真 bug（清单曾漏了 `jev_health` 自己）。
 
 ## 接进任意支持 MCP 的模型
 
@@ -90,7 +90,9 @@ npm run console    # http://localhost:5173
 
 ## 成本
 
-$0.042 / 百万 input token，输出免费。一次调用打包多题时 state 只摄取一次，所以每个判断的均价随题数下降（实测 5 题打包比逐题省约 62%）。盒子里单次判断实测约 $0.00002–0.00005、p50 约 300ms；15 个用例的完整自检 $0.000394。
+$0.042 / 百万 input token，输出免费。一次调用打包多题时 state 只摄取一次，所以每个判断的均价随题数下降（实测 5 题打包比逐题省约 62%）。盒子里单次判断实测约 $0.00002–0.00005、p50 约 300ms；16 个用例的完整自检 $0.000422。
+
+`jev_screen` 的量级实测（`node jevbox/screen-at-scale.mjs 200`）：200 条串行 55 秒、73,980 token、**$0.0031，即每条 $0.0000155 —— 一万条 $0.16，十万条 $1.55**。判"数字+时长量词"这条**正则也能算**的性质时，与正则 oracle 在 n=200 上**完全一致**（TP 90 / TN 110 / 0 误报 / 0 漏报），所以通道的可靠性和单价是量出来的；换成正则写不出的语义性质（"是否已闭环"，n=20）时 0 误报，三个带"已"字的未闭环样本（发票已寄出待签收、换货已发出、用户说先这样用着但问题还在）全部正确判 false —— 关键词筛会在这里翻车。**官方"100x 便宜"的倍率没有实测**：这台机器上没跑对照大模型，只能给出上面的绝对单价。
 
 ## 仓库结构
 
@@ -102,6 +104,7 @@ jevbox/
   cli.mjs       不支持 MCP 时的保底入口
   audit.mjs     追加式审计 + 人工复核回流（写 jevbox/audit.jsonl，已 gitignore）
   jev.mjs       TypeSafe /v1/systemone 客户端，带 429/529 退避重试
-  test.mjs      官方 MCP client 端到端自检，15 个用例
+  test.mjs      官方 MCP client 端到端自检，16 个用例 + 1 条结构自检
+  screen-at-scale.mjs  jev_screen 的量级与准确度复现（对正则 oracle）
 studio/         可视化控制台（Vite + React），server.mjs 是它的 API 代理
 ```
