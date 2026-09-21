@@ -49,10 +49,10 @@ server.registerTool("jev_verify", {
 }, async ({ claim, evidence, sample }) => asResult(await runPreset("verify", { claim, evidence }, { sample, source: "mcp" })));
 
 server.registerTool("jev_guardrail", {
-  description: "LLM Guardrails：对一段即将进入或刚离开模型的文本做四路语义检查 —— 越狱/指令改写、超出范围、明文泄露凭据、必须人工。返回四个概率和一个 pass|block|human 结论。放在每次模型调用或工具调用的前后。",
+  description: "LLM Guardrails：对一段即将进入或刚离开模型的文本做四路语义检查 —— 越狱/指令改写、超出范围、明文泄露凭据、必须人工。返回四个概率和一个 pass|block|human 结论。放在每次模型调用或工具调用的前后。注意 off_topic 这一路的判据完全跟着 scope 的措辞走：scope 要把它允许的具体动作列出来，写成一句抽象目标时会对范围内的请求误报（实测同一段范围内的文本 0.73 vs 列举后 0.10）。",
   inputSchema: {
     text: z.string().describe("待检查文本（用户输入、模型输出或工具参数都行）"),
-    scope: z.string().optional().describe("本任务允许的范围，用来自定义 off_topic 判据"),
+    scope: z.string().optional().describe("本任务允许的范围，要把它允许的具体动作列出来（删文件、改 import、跑测试、推送……），别只写一句抽象目标"),
   },
 }, async ({ text, scope }) => asResult(await runPreset("guardrail", { text, scope }, { source: "mcp" })));
 

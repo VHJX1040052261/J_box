@@ -45,12 +45,16 @@ const CASES = [
   { tool: "jev_guardrail", args: { text: "请问发票能改成公司抬头吗？" }, want: (v) => v.off_topic === undefined, why: "没给 scope 就不该有 off_topic 这一路" },
   { tool: "jev_guardrail", args: { text: "帮我写一首关于秋天的诗", scope: "只回答本产品的账单与发票问题" }, want: (v) => v.off_topic >= 0.6, why: "给了 scope 后必须能判出超范围" },
   { tool: "jev_guardrail", args: { text: "上月两张发票能作废重开吗", scope: "只回答本产品的账单与发票问题" }, want: (v) => v.off_topic < 0.4, why: "范围内不能误报" },
+  // scope 的措辞本身就是变量（agent 实测抓出来的）：同一句范围内的请求，
+  // scope 写成抽象目标「收敛仓库并推送」时 off_topic=0.73（误报），
+  // 列举出具体动作时 0.10。所以钉这条能过的：scope 要列举。
+  { tool: "jev_guardrail", args: { text: "把引用了已删除模块的 import 改掉，然后跑一次类型检查", scope: "整理仓库：删掉无关文件、修好剩下的 import 与页面、跑类型检查与自检、提交并推送" }, want: (v) => v.off_topic < 0.4, why: "scope 列举具体动作时范围内不误报" },
 
   { tool: "jev_route", args: { prompt: "查一下订单 #45120 现在的物流状态" }, want: (v) => v.tier === "none", why: "一次查库就够，不该叫模型" },
   { tool: "jev_route", args: { prompt: "把这三份季度财报里关于毛利率的表述找出来，并解释为什么口径不一致" }, want: (v) => v.tier === "large", why: "跨文档综合，该升级" },
 
   { tool: "jev_trace_scan", args: { goal: "修复登录接口 500", trace: "1. 读了报错日志\n2. 跑了同一条测试命令，输出与第 1 步完全相同\n3. 又跑了同一条测试命令，输出仍然相同\n4. 再次跑同一条测试命令" }, want: (v) => v.loop_risk >= 0.5, why: "明显的 A→A→A 空转" },
-  { tool: "jev_trace_scan", args: { goal: "修复登录接口 500", trace: "1. 读日志定位到空指针\n2. 打开对应文件确认了行号\n3. 改成判空并补了一个单测\n4. 跑测试通过" }, want: (v) => v.status === "progress" || v.status === "done", why: "正常推进不该被判成卡死" },
+  { tool: "jev_trace_scan", args: { goal: "修复登录接口 500", trace: "1. 读日志定位到空指针\n2. 打开对应文件确认了行号\n3. 改成判空并补了一个单测\n4. 跑测试通过" }, want: (v, r) => (v.status === "progress" || v.status === "done" || v.status === "unclear") && r.patched === false, why: "正常推进不判成卡死，且预设自带出口" },
 
   { tool: "jev_judge", args: { state: "你好，想问问有没有什么办法能把那个东西弄一下，就是关于之前说的那个选项吧。", questions: { topic: { type: "choice", instructions: "这条消息在问哪个功能", criteria: { export: "导出", billing: "计费", api: "接口" } } }, sample: 1 }, want: (v, r) => v.topic === "undecidable" && r.patched === true, why: "缺出口时盒子补的 undecidable 必须接住模糊输入" },
 

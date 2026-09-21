@@ -125,6 +125,9 @@ export const PRESETS = {
           contradiction: "和已知事实或前一步结论冲突",
           tool_misuse: "工具选错、参数错、或在不该调用时调用",
           done: "目标已经达成，应当停止",
+          // 显式给出「看不出来」这个出口。之前靠 box 运行时补 undecidable，
+          // 每次调用都带 patched:true —— 那是在替预设补课，不是调用方的问题。
+          unclear: "轨迹信息不足，判断不了这一步是在推进还是空转",
         },
       },
       loop_risk: {
