@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.log
+
+# 运行时数据：审计日志和缓存的判断，含业务文本，不入库
+jevkit/audit.jsonl
+.jev_raw_judgments.json
+jevbox/.pk-jev.json
+jevkit/.pk-jev.json
+
+# 密钥只应该走环境变量，永远不该出现在这里
+.env
+.env.*
+*.pem
+*.key
+
+# 对战运行时的盘面快照，可再生，不入库
+.race.json
+.auto_race.json

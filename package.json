@@ -1,0 +1,28 @@
+{
+  "name": "j-box",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Jev 能力盒：把 TypeSafe Jev 的类型化判断包成 MCP 工具与 CLI，任何大模型都能工具式调用",
+  "bin": {
+    "j-box": "./jevbox/cli.mjs",
+    "j-box-mcp": "./jevbox/server.mjs"
+  },
+  "scripts": {
+    "box": "node jevbox/cli.mjs",
+    "box:mcp": "node jevbox/server.mjs",
+    "box:test": "node jevbox/test.mjs",
+    "demo": "node jevkit/demo.mjs",
+    "pk": "node jevkit/pk.mjs",
+    "boss": "node jevkit/boss-demo.mjs",
+    "studio": "npm --prefix studio run dev",
+    "api": "node studio/server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

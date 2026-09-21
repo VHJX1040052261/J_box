@@ -1,0 +1,212 @@
+[
+  {
+    "id": "A0",
+    "kind": "noul",
+    "p": 1,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.00001218,
+    "ms": 881
+  },
+  {
+    "id": "A1",
+    "kind": "noul",
+    "p": 0.01,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.00001197,
+    "ms": 722
+  },
+  {
+    "id": "A2",
+    "kind": "noul",
+    "p": 0.99,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.00001218,
+    "ms": 289
+  },
+  {
+    "id": "A3",
+    "kind": "noul",
+    "p": 0,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.000011928000000000002,
+    "ms": 298
+  },
+  {
+    "id": "A4",
+    "kind": "noul",
+    "p": 1,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.000012264,
+    "ms": 377
+  },
+  {
+    "id": "A5",
+    "kind": "noul",
+    "p": 0,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.000011886000000000001,
+    "ms": 284
+  },
+  {
+    "id": "A6",
+    "kind": "noul",
+    "p": 0.02,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.000011844000000000002,
+    "ms": 291
+  },
+  {
+    "id": "A7",
+    "kind": "noul",
+    "p": 0.99,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.000012138,
+    "ms": 396
+  },
+  {
+    "id": "A8",
+    "kind": "noul",
+    "p": 0.01,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.000011802000000000002,
+    "ms": 301
+  },
+  {
+    "id": "A9",
+    "kind": "noul",
+    "p": 0.01,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.000011886000000000001,
+    "ms": 303
+  },
+  {
+    "id": "A10",
+    "kind": "noul",
+    "p": 0,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.00001197,
+    "ms": 258
+  },
+  {
+    "id": "A11",
+    "kind": "noul",
+    "p": 0.99,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.000012054,
+    "ms": 358
+  },
+  {
+    "id": "A12",
+    "kind": "noul",
+    "p": 0.01,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.000011928000000000002,
+    "ms": 294
+  },
+  {
+    "id": "A13",
+    "kind": "noul",
+    "p": 0.01,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.00001197,
+    "ms": 347
+  },
+  {
+    "id": "A14",
+    "kind": "noul",
+    "p": 0.99,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.000012012000000000001,
+    "ms": 309
+  },
+  {
+    "id": "A15",
+    "kind": "noul",
+    "p": 0.04,
+    "pred": 0,
+    "oracle": 0,
+    "ok": true,
+    "cost": 0.000011802000000000002,
+    "ms": 289
+  },
+  {
+    "id": "B0",
+    "kind": "choice",
+    "p": 1,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.000016254,
+    "ms": 253
+  },
+  {
+    "id": "B1",
+    "kind": "choice",
+    "p": 1,
+    "pred": 2,
+    "oracle": 2,
+    "ok": true,
+    "cost": 0.000016464,
+    "ms": 272
+  },
+  {
+    "id": "B3",
+    "kind": "choice",
+    "p": 1,
+    "pred": 1,
+    "oracle": 1,
+    "ok": true,
+    "cost": 0.000016590000000000002,
+    "ms": 376
+  },
+  {
+    "id": "B4",
+    "kind": "choice",
+    "p": 1,
+    "pred": 2,
+    "oracle": 2,
+    "ok": true,
+    "cost": 0.000016296,
+    "ms": 326
+  },
+  {
+    "id": "B5",
+    "kind": "choice",
+    "p": 1,
+    "pred": 3,
+    "oracle": 3,
+    "ok": true,
+    "cost": 0.000016380000000000002,
+    "ms": 352
+  }
+]
