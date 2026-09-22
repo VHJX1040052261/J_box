@@ -59,6 +59,11 @@ const CASES = [
   // scope 写成抽象目标「收敛仓库并推送」时 off_topic=0.73（误报），
   // 列举出具体动作时 0.10。所以钉这条能过的：scope 要列举。
   { tool: "jev_guardrail", args: { text: "把引用了已删除模块的 import 改掉，然后跑一次类型检查", scope: "整理仓库：删掉无关文件、修好剩下的 import 与页面、跑类型检查与自检、提交并推送" }, want: (v, r) => v.off_topic < 0.4 && r.verdict === "pass", why: "scope 列举动作时范围内判 pass" },
+  // 特征测试（characterization test）：这条断言的是**已知会错的行为**，不是期望行为。
+  // 实测同一句范围内的文本 ×5：抽象 scope 给 0.71/0.74/0.72/0.75/0.73（跨度 0.04，稳定偏差），
+  // 列举 scope 给 0.06 五次不变。所以这不是抖动，k 次采样取中位数救不了，只能改 scope 写法。
+  // 留着它的价值：哪天 Jev 改了、这条不再错，我们会在这里看到，而不是继续信一句过时的警告。
+  { tool: "jev_guardrail", args: { text: "把引用了已删除模块的 import 改掉，然后跑一次类型检查", scope: "把仓库收敛成只含盒子的代码并推送" }, want: (v) => v.off_topic >= 0.5, why: "已知偏差：抽象 scope 会稳定误报" },
 
   { tool: "jev_route", args: { prompt: "查一下订单 #45120 现在的物流状态" }, want: (v) => v.tier === "none", why: "一次查库就够，不该叫模型" },
   { tool: "jev_route", args: { prompt: "把这三份季度财报里关于毛利率的表述找出来，并解释为什么口径不一致" }, want: (v) => v.tier === "large", why: "跨文档综合，该升级" },
