@@ -70,9 +70,11 @@ node jevbox/cli.mjs --list`;
             <Alert>
               <AlertTitle>配置文件放哪</AlertTitle>
               <AlertDescription className="text-xs leading-relaxed">
-                <span className="font-mono">.qoder/settings.local.json</span>（仅本项目、已被 gitignore，<span className="font-medium">推荐</span>，因为里面有密钥）
-                或 <span className="font-mono">~/.qoder-cn/settings.json</span>（全局）。
-                绝对不要放进 <span className="font-mono">.qoder/settings.json</span> —— 那个是要提交的，密钥会跟着进公开仓库。
+                实测过：<span className="font-mono">~/.qoder-cn/settings.json</span> 顶层的
+                <span className="font-mono"> mcpServers</span> 才这份运行时读；写在项目里的
+                <span className="font-mono">.qoder/settings.local.json</span> 会被<b>静默忽略</b> ——
+                reload 之后 <span className="font-mono">mcp_list</span> 里什么都搜不到，日志里连一次启动子进程的尝试都没有。
+                所以放用户级那个文件。绝对不要放 <span className="font-mono">.qoder/settings.json</span> —— 那个要提交，密钥会跟着进公开仓库。
               </AlertDescription>
             </Alert>
           </CardContent>

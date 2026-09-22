@@ -31,16 +31,21 @@ export function VerdictBadge({ action }: { action: string | null }) {
   return <Badge variant="outline" className={ACTION_STYLE[action] ?? "bg-primary/10 text-primary border-primary/40"}>{action}</Badge>;
 }
 
-const SOURCE_LABEL: Record<string, string> = { mcp: "agent · MCP", cli: "命令行", console: "控制台" };
+const SOURCE_LABEL: Record<string, string> = { mcp: "agent · MCP", harness: "外部钩子", cli: "命令行", console: "控制台" };
 const SOURCE_STYLE: Record<string, string> = {
   mcp: "bg-violet-500/15 text-violet-700 dark:text-violet-400 border-violet-500/40",
+  harness: "bg-teal-500/15 text-teal-700 dark:text-teal-400 border-teal-500/40",
   cli: "bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/40",
   console: "bg-muted text-muted-foreground border-border",
 };
 
+/** harness:codex-stop 这类带子来源的，归到 harness 这一档显示 */
+export const sourceClass = (source: string | null) => (source ?? "console").split(":")[0];
+
 export function SourceBadge({ source }: { source: string | null }) {
-  const key = source ?? "console";
-  return <Badge variant="outline" className={SOURCE_STYLE[key] ?? SOURCE_STYLE.console}>{SOURCE_LABEL[key] ?? key}</Badge>;
+  const cls = sourceClass(source);
+  const label = SOURCE_LABEL[cls] ?? source ?? "控制台";
+  return <Badge variant="outline" className={SOURCE_STYLE[cls] ?? SOURCE_STYLE.console}>{label}</Badge>;
 }
 
 export function Bars({ data, winner }: { data: Record<string, number>; winner?: string }) {

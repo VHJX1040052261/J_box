@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SourceBadge, VerdictBadge } from "./parts";
+import { SourceBadge, VerdictBadge, sourceClass } from "./parts";
 
 type Row = {
   id: string;
@@ -77,6 +77,12 @@ export function StreamTab() {
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, review: { ...(r.review ?? {}), overturned } } : r)));
   }
 
+  const bySource = rows.reduce<Record<string, number>>((acc, r) => {
+    const cls = sourceClass(r.source);
+    acc[cls] = (acc[cls] ?? 0) + 1;
+    return acc;
+  }, {});
+
   const totals = Object.values(stats).reduce(
     (acc, s) => ({ n: acc.n + s.n, cost: acc.cost + s.cost, reviewed: acc.reviewed + s.reviewed, overturned: acc.overturned + s.overturned }),
     { n: 0, cost: 0, reviewed: 0, overturned: 0 },
@@ -112,6 +118,29 @@ export function StreamTab() {
             标 <SourceBadge source="mcp" /> 的行不是控制台发出的，是 agent 在它自己的会话里通过 MCP 调的 ——
             三个入口写同一个审计文件，所以这里能直接看见接入是否真的生效。
           </p>
+
+          {/*
+            接入存活计数。加它是因为同一类事故连着犯了两次：MCP 配置写好、codex 钩子装好，
+            两边都「看起来正常」，实际一个调用都没进来 —— 而页面只显示「有 127 行」，看不出来源。
+            未信任的 codex 钩子会被静默跳过，不报错也不留痕，所以「没行」必须被显式说出来。
+          */}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {(["mcp", "harness", "cli", "console"] as const).map((cls) => {
+              const n = bySource[cls] ?? 0;
+              const external = cls === "mcp" || cls === "harness";
+              return (
+                <span key={cls} className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] ${n === 0 && external ? "border-amber-500/50 bg-amber-500/10" : "border-border"}`}>
+                  <SourceBadge source={cls} />
+                  <span className="font-mono tabular-nums">{n}</span>
+                </span>
+              );
+            })}
+            {!(bySource.mcp > 0) && !(bySource.harness > 0) && (
+              <span className="text-[11px] text-amber-700 dark:text-amber-400">
+                最近 {rows.length} 行里没有任何 agent / 钩子来源 —— 若你刚配好接入，这通常意味着它没真的生效（MCP 要 <span className="font-mono">/mcp reload</span>；codex 钩子要过信任闸门），而不是「今天刚好没调用」。
+              </span>
+            )}
+          </div>
           {!rows.length && <p className="py-10 text-center text-sm text-muted-foreground">还没有调用记录。去「工具台」点一次，或者让 agent 调一个 jev_ 工具。</p>}
           {rows.length > 0 && (
             <div className="max-h-[560px] overflow-auto rounded-md border">

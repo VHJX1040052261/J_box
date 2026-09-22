@@ -30,7 +30,7 @@ node jevbox/test.mjs             # 端到端自检，会真花钱（约 $0.0004�
 
 配置写完在 agent 会话里执行 `/mcp reload`，用 `/mcp` 确认 `jev-box` 已连接、八个工具都在。
 
-密钥放在 `env` 里，别写进任何会提交的文件。本地配置建议放 `.qoder/settings.local.json`（已 gitignore），不要放 `.qoder/settings.json`（那个是要进仓库的）。
+密钥放在 `env` 里，别写进任何会提交的文件。在 Qoder 里实测过：只有 `~/.qoder-cn/settings.json` 顶层的 `mcpServers` 会被读，写进项目的 `.qoder/settings.local.json` 会被**静默忽略**（reload 后 `mcp_list` 搜不到，日志里连一次启动子进程的尝试都没有）。更要避开的是 `.qoder/settings.json` —— 那个是要进仓库的，密钥会跟着进公开仓库。
 
 没有 MCP 客户端也能用，走 CLI（任何能跑 shell 的模型都可用）：
 
