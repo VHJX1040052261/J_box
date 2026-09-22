@@ -11,6 +11,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { fileURLToPath } from "node:url";
+import { loadTurns } from "./harness/transcript.mjs";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -41,6 +42,24 @@ const healthBody = JSON.parse((await client.callTool({ name: "jev_health", argum
 const listed = new Set(healthBody.tools ?? []);
 const drift = tools.map((t) => t.name).filter((n) => !listed.has(n)).concat([...listed].filter((n) => !tools.some((t) => t.name === n)));
 console.log(`清单一致性：${drift.length ? `✗ 差异 ${drift.join(", ")}` : `✓ ${tools.length} 个工具与 jev_health 自报一致`}`);
+
+/**
+ * 零成本的抽取器自检。它抓的是**喂给 Jev 的材料**，不是 Jev 的判断。
+ * 上一版只认 {role, content}，把没有 role 的 function_call 全丢了，
+ * 于是「连续三次跑同一条命令」这种最该被认出空转的轨迹，在 state 里根本不存在，
+ * trace_scan 老实判了 progress，而我差点把它写成「模型漏判」的结论。
+ */
+const fixture = [
+  '{"payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"修复登录 500"}]}}',
+  '{"payload":{"type":"function_call","name":"shell","arguments":"{\\"command\\":\\"npm test\\"}"}}',
+  '{"payload":{"type":"function_call_output","output":"1 failed"}}',
+  '{"payload":{"type":"function_call","name":"shell","arguments":"{\\"command\\":\\"npm test\\"}"}}',
+  '{"payload":{"type":"function_call_output","output":"1 failed"}}',
+].join("\n");
+const fixtureTurns = loadTurns(fixture);
+const callTurns = fixtureTurns.filter((t) => t.startsWith("调用 shell(")).length;
+const extractOk = fixtureTurns[0] === "user: 修复登录 500" && callTurns === 2 && fixtureTurns.filter((t) => t.startsWith("→")).length === 2;
+console.log(`轨迹抽取器：${extractOk ? `✓ 用户消息+${callTurns} 次工具调用+输出都在 state 里` : `✗ 抽漏了：${JSON.stringify(fixtureTurns)}`}`);
 
 /** 每个工具至少一个正例一个反例 —— 只验正例的话，一个恒返回 true 的破盒子也能满分 */
 const CASES = [
@@ -118,4 +137,4 @@ console.log(bad.length
   : "  全部达期望。正反例都过了：既没漏报，也没在正常输入上误报。");
 
 await client.close();
-process.exit(bad.length || drift.length ? 1 : 0);
+process.exit(bad.length || drift.length || !extractOk ? 1 : 0);

@@ -107,6 +107,26 @@ $0.042 / 百万 input token，输出免费。一次调用打包多题时 state �
 
 `jev_screen` 的量级实测（`node jevbox/screen-at-scale.mjs 200`）：200 条串行 55 秒、73,980 token、**$0.0031，即每条 $0.0000155 —— 一万条 $0.16，十万条 $1.55**。判"数字+时长量词"这条**正则也能算**的性质时，与正则 oracle 在 n=200 上**完全一致**（TP 90 / TN 110 / 0 误报 / 0 漏报），所以通道的可靠性和单价是量出来的；换成正则写不出的语义性质（"是否已闭环"，n=20）时 0 误报，三个带"已"字的未闭环样本（发票已寄出待签收、换货已发出、用户说先这样用着但问题还在）全部正确判 false —— 关键词筛会在这里翻车。**官方"100x 便宜"的倍率没有实测**：这台机器上没跑对照大模型，只能给出上面的绝对单价。
 
+## 接进 codex CLI（Stop 观测钩子）
+
+codex 有一等公民的 hooks（12 个事件，handler 支持 `command` / `mcp_tool` / `prompt` / `agent`），所以**不用 fork**。`jevbox/harness/codex-stop-hook.mjs` 挂在 `Stop` 上，每轮结束时做两件只观测、不拦的判断：
+
+- 对 `last_assistant_message`（模型最后说了什么）跑 `guardrail` —— 抓我往回复里贴明文密钥
+- 对 `transcript_path` 抽出的轨迹跑 `trace_scan` —— 抓我开始空转（反复跑同一条命令）
+
+两条都落进 `jevbox/audit.jsonl`，`source = harness:codex-stop`，在控制台「实时调用流」里能直接看到。
+
+```bash
+cp jevbox/harness/hooks.example.json ~/.codex/hooks.json   # 把里面的路径改成你的绝对路径
+```
+
+**两个坑，都是实测踩到的：**
+
+1. **钩子有信任闸门，非交互模式会静默跳过。** 未信任的钩子在 `codex exec` 下不会执行，也不报错 —— 你会以为装好了。要么在交互模式里确认信任，要么单次带 `--dangerously-bypass-hook-trust`（这道闸存在的目的是不让未经确认的钩子自动跑，别习惯性带这个标志）。
+2. **每轮多约 3 秒**（两次 Jev 调用 + 进程起停），实测 2.96s。
+
+为什么选 `Stop` 而不是 `PreToolUse`：`Stop` 的 payload 里 `last_assistant_message` 和 `transcript_path` 都由 harness 填，**不经过模型的手**。换成 `verify` 类检查就得让模型自己写 claim 和 evidence，那等于让它自己出题自己批，强制调用也就只是仪式。
+
 ## 仓库结构
 
 ```

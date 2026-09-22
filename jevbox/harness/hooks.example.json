@@ -1,0 +1,18 @@
+{
+  "description": "jev-box 的 Stop 观测钩子：每轮结束时，对「模型最后说了什么」和「这一轮的轨迹」各做一次判断，结果落进 jevbox/audit.jsonl（source=harness:codex-stop）。只观测，不拦。",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<仓库绝对路径>/jevbox/harness/codex-stop-hook.mjs\"",
+            "commandWindows": "node \"<仓库绝对路径>\\jevbox\\harness\\codex-stop-hook.mjs\"",
+            "timeout": 30,
+            "statusMessage": "jev-box 正在复核这一轮"
+          }
+        ]
+      }
+    ]
+  }
+}
