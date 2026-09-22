@@ -13,7 +13,7 @@
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { loadTurns } from "./transcript.mjs";
+import { loadTurns, pickGoal } from "./transcript.mjs";
 
 /**
  * 密钥来源：codex 拉起钩子时用的是它自己的环境，里面不会有 TYPESAFE_API_KEY。
@@ -66,7 +66,7 @@ if (payload.transcript_path) {
 }
 
 const last = typeof payload.last_assistant_message === "string" ? payload.last_assistant_message : "";
-const goal = turns.find((t) => t.startsWith("user"))?.slice(6) ?? "(轨迹里没有用户目标)";
+const goal = pickGoal(turns);
 const trace = turns.slice(-MAX_ENTRIES).join("\n").slice(0, MAX_TRANSCRIPT_CHARS);
 
 const results = [];

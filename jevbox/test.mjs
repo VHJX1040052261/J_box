@@ -11,7 +11,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { fileURLToPath } from "node:url";
-import { loadTurns } from "./harness/transcript.mjs";
+import { loadTurns, pickGoal } from "./harness/transcript.mjs";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -59,6 +59,17 @@ const fixture = [
 const fixtureTurns = loadTurns(fixture);
 const callTurns = fixtureTurns.filter((t) => t.startsWith("调用 shell(")).length;
 const extractOk = fixtureTurns[0] === "user: 修复登录 500" && callTurns === 2 && fixtureTurns.filter((t) => t.startsWith("→")).length === 2;
+// 目标选取：真机 rollout 里 AGENTS.md 会作为 user 条目排在真正的请求之前，
+// 取第一条就会把系统前缀当成「目标」喂给 trace_scan —— 拿真实轨迹跑才暴露出来的
+const goalTurns = loadTurns(
+  [
+    '{"payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"# AGENTS.md 不能撒谎造假，改文件前必须备份"}]}}',
+    '{"payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"只回复一个字：好"}]}}',
+  ].join("\n"),
+);
+const goalOk = pickGoal(goalTurns) === "只回复一个字：好";
+console.log(`目标选取：${goalOk ? "✓ 取到最后一条真实用户请求，没被 AGENTS.md 前缀顶掉" : `✗ 取到了 ${JSON.stringify(pickGoal(goalTurns))}`}`);
+
 console.log(`轨迹抽取器：${extractOk ? `✓ 用户消息+${callTurns} 次工具调用+输出都在 state 里` : `✗ 抽漏了：${JSON.stringify(fixtureTurns)}`}`);
 
 /** 每个工具至少一个正例一个反例 —— 只验正例的话，一个恒返回 true 的破盒子也能满分 */
@@ -137,4 +148,4 @@ console.log(bad.length
   : "  全部达期望。正反例都过了：既没漏报，也没在正常输入上误报。");
 
 await client.close();
-process.exit(bad.length || drift.length || !extractOk ? 1 : 0);
+process.exit(bad.length || drift.length || !extractOk || !goalOk ? 1 : 0);

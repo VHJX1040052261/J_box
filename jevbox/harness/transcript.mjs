@@ -69,3 +69,13 @@ export function loadTurns(raw) {
   }
   return turns;
 }
+
+/**
+ * 目标 = **最后一条** user 轮，不是第一条。
+ * 真机 rollout 里 codex 把 AGENTS.md 的指令也作为 user 条目注入，且排在真正的请求前面；
+ * 取第一条的话，喂给 trace_scan 的「目标」会变成一大坨系统前缀，而不是这一轮实际要做的事。
+ */
+export function pickGoal(turns, maxChars = 400) {
+  const users = turns.filter((x) => x.startsWith("user:"));
+  return (users.at(-1)?.slice(6) ?? "").slice(0, maxChars) || "(轨迹里没有用户目标)";
+}
